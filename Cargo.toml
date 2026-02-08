@@ -1,6 +1,19 @@
 [package]
-name = "quiet_crab"
+name = "quiet-crab"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
+# Core deep learning framework
+burn = { version = "0.20.1", features = ["wgpu", "ndarray"] }
+burn-import = { version = "0.20.1", features = ["safetensors"] }
+hound = "3.5.1"       # WAV file reading
+rustfft = "6.2"       # Fast Fourier Transform for spectrograms
+symphonia = { version = "0.5", features = ["mp3", "pcm", "wav"] }  # Audio decoding
+rubato = "0.15"       # Audio resampling
+
+# Tokenization
+tokenizers = "0.19"  # BPE tokenizer
+
+# Utilities
+anyhow = "1.0"  # Better error handling

@@ -1,1 +1,6 @@
+.direnv/
+*.json
 /target
+*.safetensors
+*mp3
+*md
