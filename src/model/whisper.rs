@@ -1,17 +1,11 @@
 use std::path::PathBuf;
 
+use crate::model::{config::WhisperConfig, decoder::WhisperDecoder, encoder::WhisperEncoder};
 use burn::{
     module::Module,
-    record::{FullPrecisionSettings, Recorder},
-    tensor::{backend::Backend, Int, Tensor},
+    tensor::{Int, Tensor, backend::Backend},
 };
-use burn_import::safetensors::{LoadArgs, SafetensorsFileRecorder};
-
-use crate::model::{
-    config::WhisperConfig,
-    decoder::WhisperDecoder,
-    encoder::WhisperEncoder,
-};
+use burn_store::{ModuleSnapshot, PyTorchToBurnAdapter, SafetensorsStore};
 
 /// Top-level Whisper model.
 ///
@@ -72,55 +66,57 @@ impl<B: Backend> WhisperModel<B> {
 
     /// Load pre-trained weights from a HuggingFace safetensors file.
     ///
-    /// Remaps PyTorch/HF key names to our Burn module paths.
+    /// Remaps PyTorch/HF key names to Burn module paths.
     pub fn from_safetensors(
         config: &WhisperConfig,
         path: impl Into<PathBuf>,
         device: &B::Device,
     ) -> anyhow::Result<Self> {
-        let model = Self::new(config, device);
-
-        let args = LoadArgs::new(path.into())
+        let mut model = Self::new(config, device);
+        let mut store = SafetensorsStore::from_file(path.into())
+            .with_from_adapter(PyTorchToBurnAdapter)
             // Remove "model." prefix
-            .with_key_remap("^model\\.", "")
+            .with_key_remapping("^model\\.", "")
             // encoder.layers.N -> encoder.blocks.N
-            .with_key_remap("encoder\\.layers\\.(\\d+)\\.", "encoder.blocks.$1.")
+            .with_key_remapping("encoder\\.layers\\.(\\d+)\\.", "encoder.blocks.$1.")
             // decoder.layers.N -> decoder.blocks.N
-            .with_key_remap("decoder\\.layers\\.(\\d+)\\.", "decoder.blocks.$1.")
+            .with_key_remapping("decoder\\.layers\\.(\\d+)\\.", "decoder.blocks.$1.")
             // encoder.layer_norm -> encoder.norm
-            .with_key_remap("encoder\\.layer_norm\\.", "encoder.norm.")
+            .with_key_remapping("encoder\\.layer_norm\\.", "encoder.norm.")
             // decoder.layer_norm -> decoder.norm
-            .with_key_remap("decoder\\.layer_norm\\.", "decoder.norm.")
+            .with_key_remapping("decoder\\.layer_norm\\.", "decoder.norm.")
             // self_attn_layer_norm -> norm1
-            .with_key_remap("\\.self_attn_layer_norm\\.", ".norm1.")
+            .with_key_remapping("\\.self_attn_layer_norm\\.", ".norm1.")
             // encoder_attn_layer_norm -> norm2
-            .with_key_remap("\\.encoder_attn_layer_norm\\.", ".norm2.")
+            .with_key_remapping("\\.encoder_attn_layer_norm\\.", ".norm2.")
             // encoder blocks: final_layer_norm -> norm2
-            .with_key_remap("(encoder\\.blocks\\.\\d+)\\.final_layer_norm", "$1.norm2")
+            .with_key_remapping("(encoder\\.blocks\\.\\d+)\\.final_layer_norm", "$1.norm2")
             // decoder blocks: final_layer_norm -> norm3
-            .with_key_remap("(decoder\\.blocks\\.\\d+)\\.final_layer_norm", "$1.norm3")
+            .with_key_remapping("(decoder\\.blocks\\.\\d+)\\.final_layer_norm", "$1.norm3")
             // encoder_attn -> cross_attn
-            .with_key_remap("\\.encoder_attn\\.", ".cross_attn.")
+            .with_key_remapping("\\.encoder_attn\\.", ".cross_attn.")
             // fc1/fc2 -> ffn.fc1/ffn.fc2
-            .with_key_remap("\\.fc1\\.", ".ffn.fc1.")
-            .with_key_remap("\\.fc2\\.", ".ffn.fc2.")
+            .with_key_remapping("\\.fc1\\.", ".ffn.fc1.")
+            .with_key_remapping("\\.fc2\\.", ".ffn.fc2.")
             // embed_tokens -> token_embedding
-            .with_key_remap("decoder\\.embed_tokens\\.", "decoder.token_embedding.")
+            .with_key_remapping("decoder\\.embed_tokens\\.", "decoder.token_embedding.")
             // embed_positions -> positional_embedding
-            .with_key_remap("decoder\\.embed_positions\\.", "decoder.positional_embedding.");
+            .with_key_remapping(
+                "decoder\\.embed_positions\\.",
+                "decoder.positional_embedding.",
+            );
 
-        let record = SafetensorsFileRecorder::<FullPrecisionSettings>::default()
-            .load(args, device)
-            .map_err(|e| anyhow::anyhow!("Failed to load safetensors: {e}"))?;
-
-        Ok(model.load_record(record))
+        model
+            .load_from(&mut store)
+            .expect("Failed to load safetensors file");
+        Ok(model)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use burn::backend::{ndarray::NdArrayDevice, NdArray};
+    use burn::backend::{NdArray, ndarray::NdArrayDevice};
 
     type TestBackend = NdArray;
 

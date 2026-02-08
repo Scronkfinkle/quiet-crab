@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 # Core deep learning framework
 burn = { version = "0.20.1", features = ["wgpu", "ndarray"] }
-burn-import = { version = "0.20.1", features = ["safetensors"] }
+burn-store = { version = "0.20.1", features = ["safetensors"]}
 hound = "3.5.1"       # WAV file reading
 rustfft = "6.2"       # Fast Fourier Transform for spectrograms
 symphonia = { version = "0.5", features = ["mp3", "pcm", "wav"] }  # Audio decoding
@@ -17,3 +17,6 @@ tokenizers = "0.19"  # BPE tokenizer
 
 # Utilities
 anyhow = "1.0"  # Better error handling
+
+# https://github.com/tracel-ai/burn/issues/4464
+zip = "=7.2.0"
