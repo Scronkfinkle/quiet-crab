@@ -29,7 +29,7 @@
     packages."x86_64-linux" = {
       # Full build with all features (default)
       default = pkgs.rustPlatform.buildRustPackage {
-        pname = "quiet_crab";
+        pname = "quiet-crab";
         version = "0.1.0";
         src = ./.;
         buildType = "debug";

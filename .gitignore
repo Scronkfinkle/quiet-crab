@@ -4,3 +4,4 @@
 *.safetensors
 *mp3
 *md
+src/main.rs
