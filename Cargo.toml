@@ -3,6 +3,7 @@ name = "quiet-crab"
 version = "0.1.0"
 edition = "2024"
 description = "Run Whisper Models in Rust Natively"
+license = "MIT"
 
 [dependencies]
 # Core deep learning framework
