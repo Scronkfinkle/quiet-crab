@@ -106,11 +106,6 @@ pub fn log_mel_spectrogram(samples: &[f32], n_mels: usize) -> Result<Vec<Vec<f32
 ///
 /// Running the fourier transform over a non-periodic signal creates "spectral leakage" where
 /// it will detect higher frequencies that don't exist
-///
-/// the function is
-/// ```
-/// w[n] = 0.5 * (1 - cos(2π·n / (N-1)))
-/// ```
 fn hann_window(n: usize) -> Vec<f32> {
     (0..n)
         .map(|i| 0.5 * (1.0 - (2.0 * PI * i as f32 / (n as f32 - 1.0)).cos()))
