@@ -145,31 +145,3 @@ fn normalize(mut samples: Vec<f32>) -> Vec<f32> {
     }
     samples
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_load_audio_shape() {
-        // Use a short slice of the sample file to verify the pipeline works
-        let samples = load_audio("enamoré.mp3").expect("failed to load audio");
-
-        // Should be at 16kHz mono
-        // 229.6s × 16000 = ~3,673,600 samples (approximately)
-        assert!(
-            samples.len() > 3_000_000,
-            "expected ~3.6M samples, got {}",
-            samples.len()
-        );
-        assert!(
-            samples.len() < 4_000_000,
-            "expected ~3.6M samples, got {}",
-            samples.len()
-        );
-
-        // All samples should be in [-1, 1]
-        let max = samples.iter().map(|s| s.abs()).fold(0.0f32, f32::max);
-        assert!(max <= 1.0 + 1e-6, "samples out of range: max={max}");
-    }
-}

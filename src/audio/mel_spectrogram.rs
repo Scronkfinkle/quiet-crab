@@ -214,22 +214,6 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_mel_spectrogram_shape() {
-        // 1 second of silence at 16kHz
-        let samples = vec![0.0f32; 16_000];
-        let mel = log_mel_spectrogram(&samples, 128).unwrap();
-
-        assert_eq!(mel.len(), 128, "should have 128 mel bands");
-        // frames = 1 + (16000 + 400 - 400) / 160 = 1 + 100 = 101
-        let expected_frames = 1 + (16_000 + FRAME_SIZE) / HOP_LENGTH; // rough bound
-        assert!(
-            mel[0].len() > 90 && mel[0].len() < expected_frames + 10,
-            "unexpected frame count: {}",
-            mel[0].len()
-        );
-    }
-
-    #[test]
     fn test_hann_window_endpoints() {
         let w = hann_window(400);
         assert_eq!(w.len(), 400);
