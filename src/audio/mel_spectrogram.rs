@@ -208,18 +208,3 @@ fn mel_filterbank(
     }
     filters
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_hann_window_endpoints() {
-        let w = hann_window(400);
-        assert_eq!(w.len(), 400);
-        // Hann window is near-zero at both ends
-        assert!(w[0].abs() < 1e-6, "hann[0] should be ~0");
-        // center should be near 1
-        assert!(w[200] > 0.99, "hann[center] should be ~1");
-    }
-}

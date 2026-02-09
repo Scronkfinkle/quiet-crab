@@ -32,8 +32,8 @@
         pname = "quiet-crab";
         version = "0.1.0";
         src = ./.;
-        buildType = "debug";
-        cargoHash = "sha256-uhOSlUD0qVBfSEHZkOm9OTjzxYuUHAvvBRjAfmcYkCU=";
+        buildType = "release";
+        cargoHash = "sha256-Yeo3yOPgiyZu4wEqsnigwUASRQrQMDV/UlrzzYPNL/g=";
 
         buildInputs = stdInputs;
 
