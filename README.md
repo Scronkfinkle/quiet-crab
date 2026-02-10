@@ -29,7 +29,7 @@ Also grab a medium/small model from huggingface (large is currently unsupported)
 ```rust
 use quiet_crab::{
     inference::Transcriber,
-    model::{config::WhisperConfig, whisper::WhisperModel},
+    model::{ModelSize, config::WhisperConfig, whisper::WhisperModel},
     tokenizer::whisper_tokenizer::WhisperTokenizer,
 };
 
@@ -43,7 +43,7 @@ type Backend = Wgpu;
 
 fn main() {
     let device = Default::default();
-    let config = WhisperConfig::medium();
+    let config = WhisperConfig::from_size(ModelSize::Medium);
 
     println!("Loading model weights...");
     let model =
@@ -63,9 +63,12 @@ fn main() {
 ```
 
 # Model Support
+
 | Model                      | Tested | Working |
 | -------------------------- | ------ | ------- |
 | `whisper-tiny`             | ❌     | ❓      |
 | `whisper-small`            | ✅     | ✅      |
 | `whisper-medium`           | ✅     | ✅      |
-| `whisper-large`            | ✅     | ❌      |
+| `whisper-large`            | ✅     | ✅      |
+| `whisper-largev2`          | ✅     | ✅      |
+| `whisper-largev3`          | ✅     | ❌      |
