@@ -6,6 +6,8 @@ pub enum ModelSize {
     Small,
     Medium,
     Large,
+    LargeV2,
+    LargeV3,
 }
 
 /// Configuration for Whisper model architecture
@@ -114,13 +116,29 @@ impl WhisperConfig {
         }
     }
 
+    pub fn large() -> Self {
+        Self {
+            model_size: ModelSize::Large,
+            vocab_size: 51865,
+            num_mel_bins: 80,
+            d_model: 1280,
+            encoder_layers: 32,
+            decoder_layers: 32,
+            num_heads: 20,
+            ffn_dim: 5120,
+            dropout: 0.0,
+            max_source_positions: 1500,
+            max_target_positions: 448,
+        }
+    }
+
     /// Create configuration for Large model (1550M parameters)
     ///
     /// Note: The HuggingFace whisper-large checkpoint uses 128 mel bins (vs 80
     /// for smaller models) and a vocab of 51866 (51865 + 1 padding token).
-    pub fn large() -> Self {
+    pub fn large_v3() -> Self {
         Self {
-            model_size: ModelSize::Large,
+            model_size: ModelSize::LargeV3,
             vocab_size: 51866,
             num_mel_bins: 128,
             d_model: 1280,
@@ -131,6 +149,17 @@ impl WhisperConfig {
             dropout: 0.0,
             max_source_positions: 1500,
             max_target_positions: 448,
+        }
+    }
+
+    pub fn from_size(size: ModelSize) -> Self {
+        match size {
+            ModelSize::Base => Self::base(),
+            ModelSize::Tiny => Self::tiny(),
+            ModelSize::Small => Self::small(),
+            ModelSize::Medium => Self::medium(),
+            ModelSize::Large | ModelSize::LargeV2 => Self::large(),
+            ModelSize::LargeV3 => Self::large_v3(),
         }
     }
 

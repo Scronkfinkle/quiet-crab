@@ -111,6 +111,7 @@ impl<B: Backend> Transcriber<B> {
                     if v > bv { (i, v) } else { (bi, bv) }
                 })
                 .0 as u32;
+
             if next_tok == self.tokenizer.eot {
                 break;
             }

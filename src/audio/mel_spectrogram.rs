@@ -8,7 +8,7 @@ use crate::audio::constants::{
 
 /// Compute log-mel spectrogram from mono 16kHz audio samples.
 ///
-/// Humans hear sound logarithmically. To model this, we invented a unit called "mels".
+/// Humans hear sound logarithmically. To model this, we use a unit called "mels".
 /// Mels convert Hz to logarithmic scale, and is calibrated such that 1000 Mel = 1000 Hz
 ///
 /// Converting the spectrogram to mels allows us to create a perceptually relevant frequency representation
