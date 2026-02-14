@@ -2,19 +2,9 @@ use anyhow::{Result, anyhow};
 use std::path::Path;
 use tokenizers::Tokenizer;
 
+use crate::model::config::WhisperConfig;
+
 /// Wrapper around the HuggingFace BPE tokenizer with Whisper-specific helpers.
-///
-/// Whisper uses a 51,865-token multilingual BPE vocabulary. Tokens 0-50,256
-/// are normal text tokens; 50,257 onward are special control tokens:
-///
-///   50257  <|endoftext|>
-///   50258  <|startoftranscript|>
-///   50259-50357  language tokens (<|en|>, <|es|>, &)
-///   50358  <|translate|>
-///   50359  <|transcribe|>
-///   50362  <|nospeech|>
-///   50363  <|notimestamps|>
-///   50364+  timestamp tokens (<|0.00|>, <|0.02|>, &)
 pub struct WhisperTokenizer {
     tokenizer: Tokenizer,
     pub sot: u32,           // <|startoftranscript|>
@@ -23,6 +13,7 @@ pub struct WhisperTokenizer {
     pub translate: u32,     // <|translate|>
     pub no_speech: u32,     // <|nospeech|>
     pub no_timestamps: u32, // <|notimestamps|>
+    pub begin_time: u32,    // <|0.00|>
 }
 
 impl WhisperTokenizer {
@@ -48,6 +39,7 @@ impl WhisperTokenizer {
             translate: lookup("<|translate|>")?,
             no_speech,
             no_timestamps: lookup("<|notimestamps|>")?,
+            begin_time: lookup("<|0.00|>")?,
             tokenizer,
         })
     }
@@ -61,15 +53,19 @@ impl WhisperTokenizer {
     ///
     /// For Spanish transcription without timestamps:
     ///   `[<|startoftranscript|>, <|es|>, <|transcribe|>, <|notimestamps|>]`
-    pub fn initial_tokens(&self, language: Option<&str>) -> Vec<u32> {
+    pub fn initial_tokens(&self, config: &WhisperConfig) -> Vec<u32> {
         let mut tokens = vec![self.sot];
-        if let Some(lang) = language
+        if let Some(lang) = &config.language
             && let Some(id) = self.language_token(lang)
         {
             tokens.push(id);
         }
         tokens.push(self.transcribe);
-        tokens.push(self.no_timestamps);
+        if config.no_timestamps {
+            tokens.push(self.no_timestamps);
+        } else {
+            tokens.push(self.begin_time);
+        }
         tokens
     }
 
@@ -85,7 +81,7 @@ impl WhisperTokenizer {
     /// Decode token IDs back to text, skipping special tokens.
     pub fn decode(&self, ids: &[u32]) -> Result<String> {
         self.tokenizer
-            .decode(ids, false)
+            .decode(ids, true)
             .map_err(|e| anyhow!("decode error: {e}"))
     }
 

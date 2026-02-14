@@ -1,3 +1,10 @@
+#[derive(Debug, Clone)]
+pub struct WhisperConfig {
+    pub model_params: WhisperModelParams,
+    pub no_timestamps: bool,
+    pub language: Option<String>,
+}
+
 /// Different Whisper model sizes
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ModelSize {
@@ -11,8 +18,8 @@ pub enum ModelSize {
 }
 
 /// Configuration for Whisper model architecture
-#[derive(Debug, Clone)]
-pub struct WhisperConfig {
+#[derive(Debug, Clone, Copy)]
+pub struct WhisperModelParams {
     /// Model size variant
     pub model_size: ModelSize,
 
@@ -47,7 +54,7 @@ pub struct WhisperConfig {
     pub max_target_positions: usize,
 }
 
-impl WhisperConfig {
+impl WhisperModelParams {
     /// Create configuration for Tiny model (39M parameters)
     pub fn tiny() -> Self {
         Self {

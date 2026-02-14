@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::model::{config::WhisperConfig, decoder::WhisperDecoder, encoder::WhisperEncoder};
+use crate::model::{config::WhisperModelParams, decoder::WhisperDecoder, encoder::WhisperEncoder};
 use burn::{
     module::Module,
     tensor::{Int, Tensor, backend::Backend},
@@ -21,21 +21,21 @@ pub struct WhisperModel<B: Backend> {
 
 impl<B: Backend> WhisperModel<B> {
     /// Construct a WhisperModel from a config.
-    pub fn new(config: &WhisperConfig, device: &B::Device) -> Self {
+    pub fn new(params: &WhisperModelParams, device: &B::Device) -> Self {
         Self {
             encoder: WhisperEncoder::new(
-                config.num_mel_bins,
-                config.d_model,
-                config.num_heads,
-                config.encoder_layers,
+                params.num_mel_bins,
+                params.d_model,
+                params.num_heads,
+                params.encoder_layers,
                 device,
             ),
             decoder: WhisperDecoder::new(
-                config.vocab_size,
-                config.d_model,
-                config.num_heads,
-                config.decoder_layers,
-                config.max_target_positions,
+                params.vocab_size,
+                params.d_model,
+                params.num_heads,
+                params.decoder_layers,
+                params.max_target_positions,
                 device,
             ),
         }
@@ -68,11 +68,11 @@ impl<B: Backend> WhisperModel<B> {
     ///
     /// Remaps PyTorch/HF key names to Burn module paths.
     pub fn from_safetensors(
-        config: &WhisperConfig,
+        params: &WhisperModelParams,
         path: impl Into<PathBuf>,
         device: &B::Device,
     ) -> anyhow::Result<Self> {
-        let mut model = Self::new(config, device);
+        let mut model = Self::new(params, device);
         let mut store = SafetensorsStore::from_file(path.into())
             .with_from_adapter(PyTorchToBurnAdapter)
             // Remove "model." prefix
