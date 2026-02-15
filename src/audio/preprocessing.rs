@@ -124,17 +124,43 @@ fn to_mono(samples: &[f32], channels: usize) -> Vec<f32> {
 
 /// Resample mono audio from `src_rate` to `dst_rate` using a high-quality FFT resampler.
 fn resample(samples: &[f32], src_rate: u32, dst_rate: u32) -> Result<Vec<f32>> {
-    // Rubato works on chunks; we process in one shot by treating input as one chunk
-    let chunk_size = samples.len().max(1);
+    let chunk_size = 1024;
     let mut resampler =
         FftFixedIn::<f32>::new(src_rate as usize, dst_rate as usize, chunk_size, 2, 1)
             .context("creating resampler")?;
 
-    // Rubato expects Vec<Vec<f32>> (one Vec per channel)
-    let input = vec![samples.to_vec()];
-    let output = resampler.process(&input, None).context("resampling")?;
+    let delay = resampler.output_delay();
+    let mut all_output: Vec<f32> = Vec::new();
 
-    Ok(output.into_iter().next().unwrap_or_default())
+    // Process audio in fixed-size chunks
+    let input_chunks = samples.chunks(chunk_size);
+    for chunk in input_chunks {
+        // Pad last chunk to chunk_size if needed
+        let mut padded = chunk.to_vec();
+        padded.resize(chunk_size, 0.0);
+        let output = resampler.process(&[padded], None).context("resampling")?;
+        all_output.extend_from_slice(&output[0]);
+    }
+
+    // Flush the resampler with zeros to drain the filter delay
+    {
+        let zeros = vec![0.0f32; chunk_size];
+        let output = resampler
+            .process(&[zeros], None)
+            .context("flushing resampler")?;
+        all_output.extend_from_slice(&output[0]);
+    }
+
+    // Trim the filter warm-up delay from the front
+    if delay < all_output.len() {
+        all_output.drain(..delay);
+    }
+
+    // Trim to expected output length
+    let expected_len = (samples.len() as f64 * dst_rate as f64 / src_rate as f64).round() as usize;
+    all_output.truncate(expected_len);
+
+    Ok(all_output)
 }
 
 /// Normalize amplitude: divides by the maximum absolute value (or leaves as-is if silent).
