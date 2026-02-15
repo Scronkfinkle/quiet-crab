@@ -27,48 +27,55 @@ Also grab a medium/small model from huggingface (large is currently unsupported)
 
 ## Run A Transcription
 ```rust
+use burn::backend::Wgpu;
 use quiet_crab::{
     inference::Transcriber,
-    model::{ModelSize, config::WhisperConfig, whisper::WhisperModel},
+    model::{
+        ModelSize, WhisperModel,
+        config::{WhisperConfig, WhisperModelParams},
+    },
     tokenizer::whisper_tokenizer::WhisperTokenizer,
 };
 
-// For CPU users
-// use burn::backend::{ndarray::NdArrayDevice, NdArray};
-// type Backend = NdArray<f32>;
-
-// For GPU users
-use burn::backend::Wgpu;
 type Backend = Wgpu;
 
-fn main() {
+fn main() -> anyhow::Result<()> {
     let device = Default::default();
-    let config = WhisperConfig::from_size(ModelSize::Medium);
+
+    // Specify Options
+    let config = WhisperConfig {
+        model_params: WhisperModelParams::from_size(ModelSize::Medium),
+        no_timestamps: false,
+        language: Some(String::from("en")),
+    };
 
     println!("Loading model weights...");
-    let model =
-        WhisperModel::<Backend>::from_safetensors(&config, "whisper-medium.safetensors", &device)
-            .unwrap();
+    let model = WhisperModel::<Backend>::from_safetensors(
+        &config.model_params,
+        "whisper-medium.safetensors",
+        &device,
+    )?;
 
     println!("Loading tokenizer...");
-    let tokenizer = WhisperTokenizer::from_file("tokenizer.json").unwrap();
+    let tokenizer = WhisperTokenizer::from_file("/home/jesse/code/rust/quiet_crab/tokenizer.json")?;
 
-    let transcriber = Transcriber::new(model, tokenizer, config, device);
+    let mut transcriber = Transcriber::new(model, tokenizer, config, device);
 
     println!("Transcribing...");
-    let text = transcriber.transcribe("sample.mp3", Some("en")).unwrap();
+    let text = transcriber.transcribe("sample.mp3")?;
 
     println!("{text}");
+    Ok(())
 }
 ```
 
 # Model Support
 
-| Model                      | Tested | Working |
-| -------------------------- | ------ | ------- |
-| `whisper-tiny`             | ❌     | ❓      |
-| `whisper-small`            | ✅     | ✅      |
-| `whisper-medium`           | ✅     | ✅      |
-| `whisper-large`            | ✅     | ✅      |
-| `whisper-largev2`          | ✅     | ✅      |
-| `whisper-largev3`          | ✅     | ❌      |
+| Model                      | NdArray | Wgpu    |
+| -------------------------- | ------  | ------- |
+| `whisper-tiny`             | ❓      | ❓      |
+| `whisper-small`            | ✅      | ✅      |
+| `whisper-medium`           | ✅      | ✅      |
+| `whisper-large`            | ✅      | ✅      |
+| `whisper-largev2`          | ✅      | ✅      |
+| `whisper-largev3`          | ❌      | ❌      |
