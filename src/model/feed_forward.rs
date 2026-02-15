@@ -38,9 +38,7 @@ impl<B: Backend> FeedForward<B> {
         let x = self.activation.forward(x);
 
         // Second linear layer
-        let x = self.fc2.forward(x);
-
-        x
+        self.fc2.forward(x)
     }
 }
 

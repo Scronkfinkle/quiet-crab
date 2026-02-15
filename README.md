@@ -11,7 +11,7 @@ To install, add the following to your `Cargo.toml`
 
 ```toml
 [dependencies]
-quiet-crab = { version = "0.1.0"}
+quiet-crab = { version = "0.1.1"}
 # Use wgpu for GPU support, and ndarray for CPU-only
 burn = { version = "0.20.1", features = ["wgpu", "ndarray"] }
 ```

@@ -37,7 +37,7 @@ impl<B: Backend> MultiHeadAttention<B> {
     /// * `device` - Device to place parameters on
     pub fn new(d_model: usize, n_heads: usize, device: &B::Device) -> Self {
         assert!(
-            d_model % n_heads == 0,
+            d_model.is_multiple_of(n_heads),
             "d_model ({d_model}) must be divisible by n_heads ({n_heads})"
         );
         let d_head = d_model / n_heads;

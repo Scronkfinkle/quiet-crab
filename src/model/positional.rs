@@ -5,7 +5,10 @@ use burn::tensor::{Tensor, backend::Backend};
 /// Creates a square matrix that can be added element-wise to another tensor
 /// to encode the positions of each element
 pub fn sinusoids<B: Backend>(length: usize, channels: usize, device: &B::Device) -> Tensor<B, 2> {
-    assert!(channels % 2 == 0, "channels must be even, got {channels}");
+    assert!(
+        channels.is_multiple_of(2),
+        "channels must be even, got {channels}"
+    );
     assert_ne!(channels, 2);
 
     let half = channels / 2;
