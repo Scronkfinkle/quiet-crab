@@ -1,6 +1,6 @@
 [package]
 name = "quiet-crab"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "Run Whisper Models in Rust Natively"
 license = "MIT"

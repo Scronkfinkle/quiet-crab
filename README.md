@@ -59,7 +59,7 @@ fn main() -> anyhow::Result<()> {
     println!("Loading tokenizer...");
     let tokenizer = WhisperTokenizer::from_file("/home/jesse/code/rust/quiet_crab/tokenizer.json")?;
 
-    let mut transcriber = Transcriber::new(model, tokenizer, config, device);
+    let transcriber = Transcriber::new(model, tokenizer, config, device);
 
     println!("Transcribing...");
     let text = transcriber.transcribe("sample.mp3")?;
